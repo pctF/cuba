@@ -23,7 +23,6 @@ import com.haulmont.cuba.core.entity.Entity;
 import com.haulmont.cuba.core.global.Configuration;
 import com.haulmont.cuba.core.global.UserSessionSource;
 import com.haulmont.cuba.gui.components.LookupPickerField;
-import com.haulmont.cuba.gui.components.OptionsStyleProvider;
 import com.haulmont.cuba.gui.components.SecuredActionsHolder;
 import com.haulmont.cuba.gui.components.data.Options;
 import com.haulmont.cuba.gui.components.data.meta.EntityOptions;
@@ -32,12 +31,10 @@ import com.haulmont.cuba.gui.components.data.meta.OptionsBinding;
 import com.haulmont.cuba.gui.components.data.options.OptionsBinder;
 import com.haulmont.cuba.web.gui.components.util.ShortcutListenerDelegate;
 import com.haulmont.cuba.web.gui.icons.IconResolver;
-import com.haulmont.cuba.web.widgets.CubaComboBox;
 import com.haulmont.cuba.web.widgets.CubaComboBoxPickerField;
 import com.haulmont.cuba.web.widgets.CubaPickerField;
 import com.vaadin.event.ShortcutAction;
 import com.vaadin.server.Resource;
-import com.vaadin.ui.ItemCaptionGenerator;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.LoggerFactory;
 
@@ -47,6 +44,9 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import static com.haulmont.cuba.web.gui.components.WebLookupField.NULL_ITEM_ICON_GENERATOR;
+import static com.haulmont.cuba.web.gui.components.WebLookupField.NULL_STYLE_GENERATOR;
 
 public class WebLookupPickerField<V extends Entity> extends WebPickerField<V>
         implements LookupPickerField<V>, SecuredActionsHolder {
@@ -59,9 +59,9 @@ public class WebLookupPickerField<V extends Entity> extends WebPickerField<V>
 
     protected Consumer<String> newOptionHandler;
 
-    protected OptionsStyleProvider optionsStyleProvider;
     protected Function<? super V, String> optionIconProvider;
     protected Function<? super V, String> optionCaptionProvider;
+    protected Function<? super V, String> optionStyleProvider;
 
     protected OptionsBinding<V> optionsBinding;
 
@@ -145,11 +145,11 @@ public class WebLookupPickerField<V extends Entity> extends WebPickerField<V>
     }
 
     protected String generateItemStylename(V item) {
-        if (optionsStyleProvider == null) {
+        if (optionStyleProvider == null) {
             return null;
         }
 
-        return this.optionsStyleProvider.getItemStyleName(this, item);
+        return this.optionStyleProvider.apply(item);
     }
 
     @Override
@@ -272,13 +272,18 @@ public class WebLookupPickerField<V extends Entity> extends WebPickerField<V>
         getComponent().setEmptySelectionAllowed(!isRequired() && nullOptionVisible);
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public void setOptionIconProvider(Function<? super V, String> optionIconProvider) {
         if (this.optionIconProvider != optionIconProvider) {
             // noinspection unchecked
             this.optionIconProvider = optionIconProvider;
 
-            getComponent().setItemIconGenerator(this::generateOptionIcon);
+            if (optionIconProvider != null) {
+                getComponent().setItemIconGenerator(this::generateOptionIcon);
+            } else {
+                getComponent().setItemIconGenerator(NULL_ITEM_ICON_GENERATOR);
+            }
         }
     }
 
@@ -299,7 +304,7 @@ public class WebLookupPickerField<V extends Entity> extends WebPickerField<V>
             resourceId = optionIconProvider.apply(item);
         } catch (Exception e) {
             LoggerFactory.getLogger(WebLookupField.class)
-                    .warn("Error invoking OptionIconProvider getItemIcon method", e);
+                    .warn("Error invoking optionIconProvider apply method", e);
             return null;
         }
 
@@ -327,21 +332,6 @@ public class WebLookupPickerField<V extends Entity> extends WebPickerField<V>
             setNullOption(null);
         }
         getComponent().setPlaceholder(inputPrompt);
-    }
-
-    @Override
-    public OptionsStyleProvider getOptionsStyleProvider() {
-        return optionsStyleProvider;
-    }
-
-    @Override
-    public void setOptionsStyleProvider(OptionsStyleProvider optionsStyleProvider) {
-        if (this.optionsStyleProvider != optionsStyleProvider) {
-            this.optionsStyleProvider = optionsStyleProvider;
-
-            CubaComboBox<V> comboBox = ((CubaComboBoxPickerField<V>) component).getFieldInternal();
-            comboBox.setStyleGenerator(this::generateItemStylename);
-        }
     }
 
     @Override
@@ -398,10 +388,13 @@ public class WebLookupPickerField<V extends Entity> extends WebPickerField<V>
     }
 
     @Override
-    public void setOptionCaptionProvider(Function<? super V, String> captionProvider) {
-        this.optionCaptionProvider = captionProvider;
+    public void setOptionCaptionProvider(Function<? super V, String> optionCaptionProvider) {
+        if (this.optionCaptionProvider != optionCaptionProvider) {
+            this.optionCaptionProvider = optionCaptionProvider;
 
-        getComponent().setItemCaptionGenerator((ItemCaptionGenerator<V>) captionProvider::apply);
+            // reset item captions
+            getComponent().setItemCaptionGenerator(this::generateItemCaption);
+        }
     }
 
     @Override
@@ -412,5 +405,24 @@ public class WebLookupPickerField<V extends Entity> extends WebPickerField<V>
     @Override
     public boolean isRefreshOptionsOnLookupClose() {
         return refreshOptionsOnLookupClose;
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public void setOptionStyleProvider(Function<? super V, String> optionStyleProvider) {
+        if (this.optionStyleProvider != optionStyleProvider) {
+            this.optionStyleProvider = optionStyleProvider;
+
+            if (optionStyleProvider != null) {
+                getComponent().setStyleGenerator(this::generateItemStylename);
+            } else {
+                getComponent().setStyleGenerator(NULL_STYLE_GENERATOR);
+            }
+        }
+    }
+
+    @Override
+    public Function<? super V, String> getOptionStyleProvider() {
+        return optionStyleProvider;
     }
 }

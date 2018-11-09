@@ -430,8 +430,6 @@ public interface Component {
      * An object that returns stylename for the given {@code item} (option) that is displayed by the given
      * {@code component}.
      *
-     * todo typed alternative
-     *
      * @deprecated todo
      */
     @FunctionalInterface

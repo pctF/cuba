@@ -25,7 +25,6 @@ import com.haulmont.cuba.core.global.Messages;
 import com.haulmont.cuba.core.global.QueryUtils;
 import com.haulmont.cuba.core.global.UserSessionSource;
 import com.haulmont.cuba.gui.components.Frame;
-import com.haulmont.cuba.gui.components.OptionsStyleProvider;
 import com.haulmont.cuba.gui.components.SearchPickerField;
 import com.haulmont.cuba.gui.components.SecuredActionsHolder;
 import com.haulmont.cuba.gui.components.data.Options;
@@ -453,6 +452,18 @@ public class WebSearchPickerField<V extends Entity> extends WebPickerField<V>
     @Override
     public OptionsStyleProvider getOptionsStyleProvider() {
         return optionsStyleProvider;
+    }
+
+    @Override
+    public void setOptionStyleProvider(Function<? super V, String> optionStyleProvider) {
+        // todo
+    }
+
+    @Override
+    public Function<? super V, String> getOptionStyleProvider() {
+        // todo
+
+        return null;
     }
 
     @Override

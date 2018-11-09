@@ -38,6 +38,8 @@ import com.haulmont.cuba.web.gui.icons.IconResolver;
 import com.haulmont.cuba.web.widgets.CubaComboBox;
 import com.vaadin.server.ErrorMessage;
 import com.vaadin.server.Resource;
+import com.vaadin.ui.IconGenerator;
+import com.vaadin.ui.StyleGenerator;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
@@ -58,6 +60,9 @@ import static com.vaadin.event.ShortcutAction.ModifierKey;
 public class WebLookupField<V> extends WebV8AbstractField<CubaComboBox<V>, V, V>
         implements LookupField<V>, InitializingBean {
 
+    public static final StyleGenerator NULL_STYLE_GENERATOR = item -> null;
+    public static final IconGenerator NULL_ITEM_ICON_GENERATOR = item -> null;
+
     protected FilterMode filterMode = FilterMode.CONTAINS;
 
     protected V nullOption;
@@ -68,9 +73,9 @@ public class WebLookupField<V> extends WebV8AbstractField<CubaComboBox<V>, V, V>
     // todo
     protected Consumer<ErrorMessage> componentErrorHandler;
 
-    protected OptionsStyleProvider<? super V> optionsStyleProvider;
     protected Function<? super V, String> optionIconProvider;
     protected Function<? super V, String> optionCaptionProvider;
+    protected Function<? super V, String> optionStyleProvider;
 
     protected FilterPredicate filterPredicate;
 
@@ -144,11 +149,11 @@ public class WebLookupField<V> extends WebV8AbstractField<CubaComboBox<V>, V, V>
     }
 
     protected String generateItemStylename(V item) {
-        if (optionsStyleProvider == null) {
+        if (optionStyleProvider == null) {
             return null;
         }
 
-        return this.optionsStyleProvider.getItemStyleName(this, item);
+        return this.optionStyleProvider.apply(item);
     }
 
     protected boolean filterItemTest(String itemCaption, String filterText) {
@@ -288,8 +293,13 @@ public class WebLookupField<V> extends WebV8AbstractField<CubaComboBox<V>, V, V>
     }
 
     @Override
-    public void setOptionCaptionProvider(Function<? super V, String> captionProvider) {
-        this.optionCaptionProvider = captionProvider;
+    public void setOptionCaptionProvider(Function<? super V, String> optionCaptionProvider) {
+        if (this.optionCaptionProvider != optionCaptionProvider) {
+            this.optionCaptionProvider = optionCaptionProvider;
+
+            // reset item captions
+            component.setItemCaptionGenerator(this::generateItemCaption);
+        }
     }
 
     @Override
@@ -311,6 +321,7 @@ public class WebLookupField<V> extends WebV8AbstractField<CubaComboBox<V>, V, V>
 
     @Override
     public String getCaptionProperty() {
+//        vaadin8
         return null;
     }
 
@@ -391,13 +402,18 @@ public class WebLookupField<V> extends WebV8AbstractField<CubaComboBox<V>, V, V>
         return nullOptionVisible;
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public void setOptionIconProvider(Function<? super V, String> optionIconProvider) {
         if (this.optionIconProvider != optionIconProvider) {
             // noinspection unchecked
             this.optionIconProvider = optionIconProvider;
 
-            component.setItemIconGenerator(this::generateOptionIcon);
+            if (optionIconProvider != null) {
+                component.setItemIconGenerator(this::generateOptionIcon);
+            } else {
+                component.setItemIconGenerator(NULL_ITEM_ICON_GENERATOR);
+            }
         }
     }
 
@@ -473,30 +489,23 @@ public class WebLookupField<V> extends WebV8AbstractField<CubaComboBox<V>, V, V>
         return super.isModified();
     }
 
+    @SuppressWarnings("unchecked")
     @Override
-    public void setOptionsStyleProvider(OptionsStyleProvider optionsStyleProvider) {
-        if (this.optionsStyleProvider != optionsStyleProvider) {
-            this.optionsStyleProvider = optionsStyleProvider;
+    public void setOptionStyleProvider(Function<? super V, String> optionStyleProvider) {
+        if (this.optionStyleProvider != optionStyleProvider) {
+            this.optionStyleProvider = optionStyleProvider;
 
-            component.setStyleGenerator(this::generateItemStylename);
+            if (optionStyleProvider != null) {
+                component.setStyleGenerator(this::generateItemStylename);
+            } else {
+                component.setStyleGenerator(NULL_STYLE_GENERATOR);
+            }
         }
     }
 
     @Override
-    public OptionsStyleProvider getOptionsStyleProvider() {
-        return optionsStyleProvider;
-    }
-
-    @Override
-    public void setOptionStyleProvider(Function<? super V, String> optionStyleProvider) {
-        // todo
-    }
-
-    @Override
     public Function<? super V, String> getOptionStyleProvider() {
-        // todo
-
-        return null;
+        return optionStyleProvider;
     }
 
     @Override

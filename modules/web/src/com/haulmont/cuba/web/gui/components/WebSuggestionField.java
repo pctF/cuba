@@ -21,7 +21,6 @@ import com.haulmont.cuba.core.entity.Entity;
 import com.haulmont.cuba.core.global.MetadataTools;
 import com.haulmont.cuba.core.global.UserSessionSource;
 import com.haulmont.cuba.gui.components.CaptionMode;
-import com.haulmont.cuba.gui.components.OptionsStyleProvider;
 import com.haulmont.cuba.gui.components.SuggestionField;
 import com.haulmont.cuba.gui.executors.BackgroundTask;
 import com.haulmont.cuba.gui.executors.BackgroundTaskHandler;
@@ -56,7 +55,7 @@ public class WebSuggestionField<V> extends WebV8AbstractField<CubaSuggestionFiel
 
     protected CaptionMode captionMode = CaptionMode.ITEM;
     protected String captionProperty;
-    protected OptionsStyleProvider optionsStyleProvider;
+    protected OptionsStyleProvider optionsStyleProvider; // todo replace
 
     protected BackgroundWorker backgroundWorker;
     protected MetadataTools metadataTools;

@@ -20,6 +20,7 @@ import com.vaadin.shared.Registration;
 import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.IconGenerator;
 import com.vaadin.ui.ItemCaptionGenerator;
+import com.vaadin.ui.StyleGenerator;
 
 import java.util.Collection;
 import java.util.stream.Stream;
@@ -154,5 +155,9 @@ public class CubaComboBoxPickerField<T> extends CubaPickerField<T> {
 
     public void setNewItemHandler(ComboBox.NewItemHandler newItemHandler) {
         getFieldInternal().setNewItemHandler(newItemHandler);
+    }
+
+    public void setStyleGenerator(StyleGenerator<T> generateItemStylename) {
+        getFieldInternal().setStyleGenerator(generateItemStylename);
     }
 }
