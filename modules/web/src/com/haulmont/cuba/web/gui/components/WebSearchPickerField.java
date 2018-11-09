@@ -40,7 +40,6 @@ import com.haulmont.cuba.web.gui.icons.IconResolver;
 import com.haulmont.cuba.web.widgets.CubaPickerField;
 import com.haulmont.cuba.web.widgets.CubaSearchSelectPickerField;
 import com.vaadin.server.Resource;
-import com.vaadin.ui.ItemCaptionGenerator;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.LoggerFactory;
 
@@ -51,6 +50,8 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import static com.haulmont.cuba.web.gui.components.WebLookupField.NULL_STYLE_GENERATOR;
 
 public class WebSearchPickerField<V extends Entity> extends WebPickerField<V>
         implements SearchPickerField<V>, SecuredActionsHolder {
@@ -63,9 +64,9 @@ public class WebSearchPickerField<V extends Entity> extends WebPickerField<V>
     // just stub
     protected FilterPredicate filterPredicate;
 
-    protected OptionsStyleProvider optionsStyleProvider;
     protected Function<? super V, String> optionIconProvider;
     protected Function<? super V, String> optionCaptionProvider;
+    protected Function<? super V, String> optionStyleProvider;
 
     protected OptionsBinding<V> optionsBinding;
 
@@ -124,6 +125,14 @@ public class WebSearchPickerField<V extends Entity> extends WebPickerField<V>
 
         getComponent().setItemCaptionGenerator(this::generateItemCaption);
         getComponent().setFilterHandler(this::executeSearch);
+    }
+
+    protected String generateItemStylename(V item) {
+        if (optionStyleProvider == null) {
+            return null;
+        }
+
+        return this.optionStyleProvider.apply(item);
     }
 
     protected void executeSearch(final String newFilter) {
@@ -437,33 +446,23 @@ public class WebSearchPickerField<V extends Entity> extends WebPickerField<V>
         getComponent().setPlaceholder(inputPrompt);
     }
 
+    @SuppressWarnings("unchecked")
     @Override
-    public void setOptionsStyleProvider(OptionsStyleProvider optionsStyleProvider) {
-        this.optionsStyleProvider = optionsStyleProvider;
+    public void setOptionStyleProvider(Function<? super V, String> optionStyleProvider) {
+        if (this.optionStyleProvider != optionStyleProvider) {
+            this.optionStyleProvider = optionStyleProvider;
 
-        if (optionsStyleProvider != null) {
-            getComponent().setOptionsStyleProvider(item ->
-                    optionsStyleProvider.getItemStyleName(this, item));
-        } else {
-            getComponent().setOptionsStyleProvider(null);
+            if (optionStyleProvider != null) {
+                getComponent().setOptionsStyleProvider(this::generateItemStylename);
+            } else {
+                getComponent().setOptionsStyleProvider(NULL_STYLE_GENERATOR);
+            }
         }
     }
 
     @Override
-    public OptionsStyleProvider getOptionsStyleProvider() {
-        return optionsStyleProvider;
-    }
-
-    @Override
-    public void setOptionStyleProvider(Function<? super V, String> optionStyleProvider) {
-        // todo
-    }
-
-    @Override
     public Function<? super V, String> getOptionStyleProvider() {
-        // todo
-
-        return null;
+        return optionStyleProvider;
     }
 
     @Override
@@ -516,9 +515,12 @@ public class WebSearchPickerField<V extends Entity> extends WebPickerField<V>
     }
 
     @Override
-    public void setOptionCaptionProvider(Function<? super V, String> captionProvider) {
-        this.optionCaptionProvider = captionProvider;
+    public void setOptionCaptionProvider(Function<? super V, String> optionCaptionProvider) {
+        if (this.optionCaptionProvider != optionCaptionProvider) {
+            this.optionCaptionProvider = optionCaptionProvider;
 
-        getComponent().setItemCaptionGenerator((ItemCaptionGenerator<V>) captionProvider::apply);
+            // reset item captions
+            getComponent().setItemCaptionGenerator(this::generateItemCaption);
+        }
     }
 }

@@ -303,7 +303,7 @@ public class WebLookupPickerField<V extends Entity> extends WebPickerField<V>
             // noinspection unchecked
             resourceId = optionIconProvider.apply(item);
         } catch (Exception e) {
-            LoggerFactory.getLogger(WebLookupField.class)
+            LoggerFactory.getLogger(WebLookupPickerField.class)
                     .warn("Error invoking optionIconProvider apply method", e);
             return null;
         }

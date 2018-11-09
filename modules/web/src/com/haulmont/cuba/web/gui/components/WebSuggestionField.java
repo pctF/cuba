@@ -39,6 +39,8 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.function.Function;
 
+import static com.haulmont.cuba.web.gui.components.WebLookupField.NULL_STYLE_GENERATOR;
+
 public class WebSuggestionField<V> extends WebV8AbstractField<CubaSuggestionField<V>, V, V>
         implements SuggestionField<V>, InitializingBean {
 
@@ -53,9 +55,11 @@ public class WebSuggestionField<V> extends WebV8AbstractField<CubaSuggestionFiel
 
     protected StringToEntityConverter entityConverter = new StringToEntityConverter();
 
-    protected CaptionMode captionMode = CaptionMode.ITEM;
-    protected String captionProperty;
-    protected OptionsStyleProvider optionsStyleProvider; // todo replace
+    protected CaptionMode captionMode = CaptionMode.ITEM; // todo remove
+    protected String captionProperty; // todo remove
+
+    protected Function<? super V, String> optionCaptionProvider;
+    protected Function<? super V, String> optionStyleProvider;
 
     protected BackgroundWorker backgroundWorker;
     protected MetadataTools metadataTools;
@@ -105,14 +109,28 @@ public class WebSuggestionField<V> extends WebV8AbstractField<CubaSuggestionFiel
     @Override
     public V getValue() {
         V value = super.getValue();
+
+        // todo rework OptionWrapper compatibility
         return value instanceof OptionWrapper
                 ? (V) ((OptionWrapper) value).getValue()
                 : value;
     }
 
+    protected String generateItemStylename(Object item) {
+        if (optionStyleProvider == null) {
+            return null;
+        }
+
+        return this.optionStyleProvider.apply((V)item);
+    }
+
     protected String convertToTextView(V value) {
         if (value == null) {
             return "";
+        }
+
+        if (optionCaptionProvider != null) {
+            return optionCaptionProvider.apply(value);
         }
 
         if (value instanceof Entity) {
@@ -186,7 +204,7 @@ public class WebSuggestionField<V> extends WebV8AbstractField<CubaSuggestionFiel
             return null;
         }
 
-        final SearchExecutor<V> currentSearchExecutor = this.searchExecutor;
+        SearchExecutor<V> currentSearchExecutor = this.searchExecutor;
 
         Map<String, Object> params;
         if (currentSearchExecutor instanceof ParametrizedSearchExecutor) {
@@ -372,32 +390,22 @@ public class WebSuggestionField<V> extends WebV8AbstractField<CubaSuggestionFiel
         return component.getPopupWidth();
     }
 
+    @SuppressWarnings("unchecked")
     @Override
-    public void setOptionsStyleProvider(OptionsStyleProvider optionsStyleProvider) {
-        this.optionsStyleProvider = optionsStyleProvider;
+    public void setOptionStyleProvider(Function<? super V, String> optionStyleProvider) {
+        if (this.optionStyleProvider != optionStyleProvider) {
+            this.optionStyleProvider = optionStyleProvider;
 
-        if (optionsStyleProvider != null) {
-            component.setOptionsStyleProvider(item ->
-                    optionsStyleProvider.getItemStyleName(this, item));
-        } else {
-            component.setOptionsStyleProvider(null);
+            if (optionStyleProvider != null) {
+                component.setOptionsStyleProvider(this::generateItemStylename);
+            } else {
+                component.setOptionsStyleProvider(NULL_STYLE_GENERATOR);
+            }
         }
     }
 
     @Override
-    public OptionsStyleProvider getOptionsStyleProvider() {
-        return optionsStyleProvider;
-    }
-
-    @Override
-    public void setOptionStyleProvider(Function<? super V, String> optionStyleProvider) {
-        // todo
-    }
-
-    @Override
     public Function<? super V, String> getOptionStyleProvider() {
-        // todo
-
-        return null;
+        return optionStyleProvider;
     }
 }

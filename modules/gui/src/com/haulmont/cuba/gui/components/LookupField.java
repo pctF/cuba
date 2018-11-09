@@ -134,11 +134,13 @@ public interface LookupField<V> extends OptionsField<V, V>, HasInputPrompt, Buff
 
     /**
      * Set the icon provider for LookupField.
-     * vaadin8 deprecate
      *
      * @param optionClass        class of the option
      * @param optionIconProvider provider which provides icons for options
+     *
+     * @deprecated Use {@link #setOptionIconProvider(Function)}
      */
+    @Deprecated
     void setOptionIconProvider(Class<V> optionClass, Function<? super V, String> optionIconProvider);
 
     /**

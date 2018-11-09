@@ -79,9 +79,7 @@ public class WebLookupField<V> extends WebV8AbstractField<CubaComboBox<V>, V, V>
 
     protected FilterPredicate filterPredicate;
 
-    @Inject
     protected MetadataTools metadataTools;
-    @Inject
     protected IconResolver iconResolver;
 
     protected OptionsBinding<V> optionsBinding;
@@ -96,6 +94,16 @@ public class WebLookupField<V> extends WebV8AbstractField<CubaComboBox<V>, V, V>
 
     protected CubaComboBox<V> createComponent() {
         return new CubaComboBox<>();
+    }
+
+    @Inject
+    protected void setMetadataTools(MetadataTools metadataTools) {
+        this.metadataTools = metadataTools;
+    }
+
+    @Inject
+    protected void setIconResolver(IconResolver iconResolver) {
+        this.iconResolver = iconResolver;
     }
 
     protected void handleClearShortcut(@SuppressWarnings("unused") Object sender, @SuppressWarnings("unused") Object target) {
@@ -434,7 +442,7 @@ public class WebLookupField<V> extends WebV8AbstractField<CubaComboBox<V>, V, V>
             resourceId = optionIconProvider.apply(item);
         } catch (Exception e) {
             LoggerFactory.getLogger(WebLookupField.class)
-                    .warn("Error invoking OptionIconProvider getItemIcon method", e);
+                    .warn("Error invoking optionIconProvider apply method", e);
             return null;
         }
 
