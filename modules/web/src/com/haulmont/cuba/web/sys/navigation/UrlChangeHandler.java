@@ -434,9 +434,9 @@ public class UrlChangeHandler {
     }
 
     protected void showNotification(String msg) {
-        ui.getNotifications().create()
-                .setCaption(msg)
-                .setType(Notifications.NotificationType.TRAY)
+        ui.getNotifications().builder()
+                .withCaption(msg)
+                .withType(Notifications.NotificationType.TRAY)
                 .show();
     }
 

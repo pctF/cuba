@@ -210,10 +210,10 @@ public class ExcelAction extends BaseAction implements Action.HasBeforeActionPer
             Dialogs dialogs = getScreenContext(listComponent).getDialogs();
 
             dialogs.createOptionDialog()
-                    .setCaption(title)
-                    .setMessage(caption)
-                    .setType(Dialogs.MessageType.CONFIRMATION)
-                    .setActions(
+                    .withCaption(title)
+                    .withMessage(caption)
+                    .withType(Dialogs.MessageType.CONFIRMATION)
+                    .withActions(
                             exportSelectedAction,
                             exportAllAction,
                             new DialogAction(Type.CANCEL)
@@ -245,10 +245,10 @@ public class ExcelAction extends BaseAction implements Action.HasBeforeActionPer
         if (exporter.isXlsMaxRowNumberExceeded()) {
             Notifications notifications = getScreenContext(listComponent).getNotifications();
 
-            notifications.create()
-                    .setCaption(messages.getMainMessage("actions.warningExport.title"))
-                    .setDescription(messages.getMainMessage("actions.warningExport.message"))
-                    .setType(Notifications.NotificationType.WARNING)
+            notifications.builder()
+                    .withCaption(messages.getMainMessage("actions.warningExport.title"))
+                    .withDescription(messages.getMainMessage("actions.warningExport.message"))
+                    .withType(Notifications.NotificationType.WARNING)
                     .show();
         }
     }

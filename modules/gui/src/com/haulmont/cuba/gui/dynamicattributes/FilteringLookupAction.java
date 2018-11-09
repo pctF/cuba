@@ -85,9 +85,9 @@ public class FilteringLookupAction extends PickerField.LookupAction {
         if (!found) {
             Notifications notifications = getScreenContext(pickerField).getNotifications();
 
-            notifications.create()
-                    .setCaption(messages.getMainMessage("dynamicAttributes.entity.filter.filterNotFound"))
-                    .setType(Notifications.NotificationType.WARNING)
+            notifications.builder()
+                    .withCaption(messages.getMainMessage("dynamicAttributes.entity.filter.filterNotFound"))
+                    .withType(Notifications.NotificationType.WARNING)
                     .show();
         }
         AbstractWindow controller = (AbstractWindow) (lookupWindow).getFrameOwner();

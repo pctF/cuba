@@ -308,12 +308,12 @@ public abstract class MasterDetailScreen<T extends Entity> extends StandardLooku
             justLocked = true;
         } else if (!(lockInfo instanceof LockNotSupported)) {
             Messages messages = getBeanLocator().get(Messages.class);
-            getScreenContext().getNotifications().create()
-                    .setCaption(messages.getMainMessage("entityLocked.msg"))
-                    .setDescription(String.format(messages.getMainMessage("entityLocked.desc"),
+            getScreenContext().getNotifications().builder()
+                    .withCaption(messages.getMainMessage("entityLocked.msg"))
+                    .withDescription(String.format(messages.getMainMessage("entityLocked.desc"),
                                     lockInfo.getUser().getLogin(),
                                     AppBeans.get(DatatypeFormatter.class).formatDateTime(lockInfo.getSince())))
-                    .setType(Notifications.NotificationType.HUMANIZED)
+                    .withType(Notifications.NotificationType.HUMANIZED)
                     .show();
             return false;
         }

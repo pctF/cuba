@@ -17,7 +17,6 @@
 package com.haulmont.cuba.gui.actions.list;
 
 import com.haulmont.chile.core.model.MetaClass;
-import com.haulmont.cuba.core.global.AppBeans;
 import com.haulmont.cuba.core.global.Messages;
 import com.haulmont.cuba.core.global.Security;
 import com.haulmont.cuba.gui.BulkEditors;
@@ -114,18 +113,18 @@ public class BulkEditAction extends SecuredListAction {
 
             if (!security.isSpecificPermitted(BulkEditor.PERMISSION)) {
                 Notifications notifications = getScreenContext(target.getFrame()).getNotifications();
-                notifications.create()
-                        .setCaption(messages.getMainMessage("accessDenied.message"))
-                        .setType(Notifications.NotificationType.ERROR)
+                notifications.builder()
+                        .withCaption(messages.getMainMessage("accessDenied.message"))
+                        .withType(Notifications.NotificationType.ERROR)
                         .show();
                 return;
             }
 
             if (target.getSelected().isEmpty()) {
                 Notifications notifications = getScreenContext(target.getFrame()).getNotifications();
-                notifications.create()
-                        .setCaption(messages.getMainMessage("actions.BulkEdit.emptySelection"))
-                        .setType(Notifications.NotificationType.HUMANIZED)
+                notifications.builder()
+                        .withCaption(messages.getMainMessage("actions.BulkEdit.emptySelection"))
+                        .withType(Notifications.NotificationType.HUMANIZED)
                         .show();
                 return;
             }

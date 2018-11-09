@@ -29,23 +29,23 @@ public interface Notifications {
     int DELAY_DEFAULT = Integer.MIN_VALUE;
 
     /**
-     * Creates empty notification object.
+     * Creates a notification builder.
      *
-     * @return notification
+     * @return notification builder
      */
-    Notification create();
+    NotificationBuilder builder();
 
     /**
-     * Notification object.
+     * Notification builder object.
      */
-    interface Notification {
+    interface NotificationBuilder {
         /**
          * Sets notification caption.
          *
          * @param caption caption
          * @return this
          */
-        Notification setCaption(String caption);
+        NotificationBuilder withCaption(String caption);
         /**
          * @return caption
          */
@@ -57,7 +57,7 @@ public interface Notifications {
          * @param description description
          * @return this
          */
-        Notification setDescription(String description);
+        NotificationBuilder withDescription(String description);
         /**
          * @return description
          */
@@ -69,7 +69,7 @@ public interface Notifications {
          * @param type type
          * @return this
          */
-        Notification setType(NotificationType type);
+        NotificationBuilder withType(NotificationType type);
         /**
          * @return type
          */
@@ -81,7 +81,7 @@ public interface Notifications {
          * @param contentMode content mode
          * @return this
          */
-        Notification setContentMode(ContentMode contentMode);
+        NotificationBuilder withContentMode(ContentMode contentMode);
         /**
          * @return content mode
          */
@@ -93,7 +93,7 @@ public interface Notifications {
          * @param styleName CSS class name
          * @return this
          */
-        Notification setStyleName(String styleName);
+        NotificationBuilder withStyleName(String styleName);
         /**
          * @return CSS class name
          */
@@ -105,7 +105,7 @@ public interface Notifications {
          * @param position position
          * @return this
          */
-        Notification setPosition(Position position);
+        NotificationBuilder withPosition(Position position);
         /**
          * @return position
          */
@@ -117,7 +117,7 @@ public interface Notifications {
          * @param hideDelayMs the desired delay in milliseconds, {@value #DELAY_FOREVER} to
          *                    require the user to click the message
          */
-        Notification setHideDelayMs(int hideDelayMs);
+        NotificationBuilder withHideDelayMs(int hideDelayMs);
         /**
          * @return the delay before the notification disappears in milliseconds
          */

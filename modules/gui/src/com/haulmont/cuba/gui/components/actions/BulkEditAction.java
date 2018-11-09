@@ -157,9 +157,9 @@ public class BulkEditAction extends ItemTrackingAction implements Action.HasBefo
             Messages messages = AppBeans.get(Messages.NAME);
 
             Notifications notifications = getScreenContext(target.getFrame()).getNotifications();
-            notifications.create()
-                    .setCaption(messages.getMainMessage("accessDenied.message"))
-                    .setType(Notifications.NotificationType.ERROR)
+            notifications.builder()
+                    .withCaption(messages.getMainMessage("accessDenied.message"))
+                    .withType(Notifications.NotificationType.ERROR)
                     .show();
             return;
         }
@@ -168,9 +168,9 @@ public class BulkEditAction extends ItemTrackingAction implements Action.HasBefo
             Messages messages = AppBeans.get(Messages.NAME);
 
             Notifications notifications = getScreenContext(target.getFrame()).getNotifications();
-            notifications.create()
-                    .setCaption(messages.getMainMessage("actions.BulkEdit.emptySelection"))
-                    .setType(Notifications.NotificationType.HUMANIZED)
+            notifications.builder()
+                    .withCaption(messages.getMainMessage("actions.BulkEdit.emptySelection"))
+                    .withType(Notifications.NotificationType.HUMANIZED)
                     .show();
 
             return;

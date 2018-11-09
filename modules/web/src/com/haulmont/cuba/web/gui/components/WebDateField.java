@@ -261,9 +261,9 @@ public class WebDateField<V extends Comparable<V>>
             Messages messages = beanLocator.get(Messages.NAME);
             Notifications notifications = ComponentsHelper.getScreenContext(this).getNotifications();
 
-            notifications.create()
-                    .setCaption(messages.getMainMessage("datePicker.dateOutOfRangeMessage"))
-                    .setType(Notifications.NotificationType.TRAY)
+            notifications.builder()
+                    .withCaption(messages.getMainMessage("datePicker.dateOutOfRangeMessage"))
+                    .withType(Notifications.NotificationType.TRAY)
                     .show();
         }
 

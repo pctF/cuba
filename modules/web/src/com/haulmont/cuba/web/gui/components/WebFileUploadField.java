@@ -261,17 +261,17 @@ public class WebFileUploadField extends WebAbstractUploadField<CubaFileUploadWra
         impl.addFileSizeLimitExceededListener(e -> {
             Notifications notifications = getScreenContext(this).getNotifications();
 
-            notifications.create()
-                    .setCaption(messages.formatMainMessage("upload.fileTooBig.message", e.getFileName(), getFileSizeLimitString()))
-                    .setType(Notifications.NotificationType.WARNING)
+            notifications.builder()
+                    .withCaption(messages.formatMainMessage("upload.fileTooBig.message", e.getFileName(), getFileSizeLimitString()))
+                    .withType(Notifications.NotificationType.WARNING)
                     .show();
         });
         impl.addFileExtensionNotAllowedListener(e -> {
             Notifications notifications = getScreenContext(this).getNotifications();
 
-            notifications.create()
-                    .setCaption(messages.formatMainMessage("upload.fileIncorrectExtension.message", e.getFileName()))
-                    .setType(Notifications.NotificationType.WARNING)
+            notifications.builder()
+                    .withCaption(messages.formatMainMessage("upload.fileIncorrectExtension.message", e.getFileName()))
+                    .withType(Notifications.NotificationType.WARNING)
                     .show();
         });
     }

@@ -148,9 +148,9 @@ public class MainTabSheetActionHandler implements Action.Handler {
             if (tipsList.isEmpty()) {
                 Notifications notifications = ComponentsHelper.getScreenContext(window).getNotifications();
 
-                notifications.create()
-                        .setCaption("No layout problems found")
-                        .setType(Notifications.NotificationType.HUMANIZED)
+                notifications.builder()
+                        .withCaption("No layout problems found")
+                        .withType(Notifications.NotificationType.HUMANIZED)
                         .show();
             } else {
                 WindowManager wm = (WindowManager) ComponentsHelper.getScreenContext(window).getScreens();

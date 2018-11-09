@@ -175,14 +175,14 @@ public abstract class StandardEditor<T extends Entity> extends Screen implements
                 Datatype<Date> dateDatatype = getBeanLocator().get(DatatypeRegistry.class)
                         .getNN(Date.class);
 
-                getScreenContext().getNotifications().create()
-                        .setCaption(messages.getMainMessage("entityLocked.msg"))
-                        .setDescription(
+                getScreenContext().getNotifications().builder()
+                        .withCaption(messages.getMainMessage("entityLocked.msg"))
+                        .withDescription(
                                 messages.formatMainMessage("entityLocked.desc",
                                         lockInfo.getUser().getLogin(),
                                         dateDatatype.format(lockInfo.getSince(), userSessionSource.getLocale())
                                 ))
-                        .setType(Notifications.NotificationType.HUMANIZED)
+                        .withType(Notifications.NotificationType.HUMANIZED)
                         .show();
 
                 Action commitAction = getWindow().getAction(WINDOW_COMMIT);
