@@ -17,9 +17,13 @@
 
 package com.haulmont.cuba.web.gui.components;
 
+import com.haulmont.bali.events.Subscription;
 import com.haulmont.cuba.client.ClientConfig;
 import com.haulmont.cuba.core.entity.Entity;
-import com.haulmont.cuba.core.global.*;
+import com.haulmont.cuba.core.global.Configuration;
+import com.haulmont.cuba.core.global.Messages;
+import com.haulmont.cuba.core.global.QueryUtils;
+import com.haulmont.cuba.core.global.UserSessionSource;
 import com.haulmont.cuba.gui.components.Frame;
 import com.haulmont.cuba.gui.components.OptionsStyleProvider;
 import com.haulmont.cuba.gui.components.SearchPickerField;
@@ -174,16 +178,18 @@ public class WebSearchPickerField<V extends Entity> extends WebPickerField<V>
 
     protected SearchNotifications createSearchNotifications() {
         return new SearchNotifications() {
-            protected Messages messages = AppBeans.get(Messages.NAME);
-
             @Override
             public void notFoundSuggestions(String filterString) {
+                Messages messages = beanLocator.get(Messages.NAME);
+
                 String message = messages.formatMessage("com.haulmont.cuba.gui", "searchSelect.notFound", filterString);
                 App.getInstance().getWindowManager().showNotification(message, defaultNotificationType);
             }
 
             @Override
             public void needMinSearchStringLength(String filterString, int minSearchStringLength) {
+                Messages messages = beanLocator.get(Messages.NAME);
+
                 String message = messages.formatMessage(
                         "com.haulmont.cuba.gui", "searchSelect.minimumLengthOfFilter", minSearchStringLength);
                 App.getInstance().getWindowManager().showNotification(message, defaultNotificationType);
@@ -198,7 +204,7 @@ public class WebSearchPickerField<V extends Entity> extends WebPickerField<V>
     }
 
     @Override
-    public void addFieldListener(FieldListener listener) {
+    public Subscription addFieldValueChangeListener(Consumer<FieldValueChangeEvent<V>> listener) {
         throw new UnsupportedOperationException();
     }
 
@@ -375,11 +381,7 @@ public class WebSearchPickerField<V extends Entity> extends WebPickerField<V>
             // noinspection unchecked
             this.optionIconProvider = optionIconProvider;
 
-            if (optionIconProvider == null) {
-                getComponent().setItemIconGenerator(null);
-            } else {
-                getComponent().setItemIconGenerator(this::generateOptionIcon);
-            }
+            getComponent().setItemIconGenerator(this::generateOptionIcon);
         }
     }
 
@@ -394,6 +396,10 @@ public class WebSearchPickerField<V extends Entity> extends WebPickerField<V>
     }
 
     protected Resource generateOptionIcon(V item) {
+        if (optionIconProvider == null) {
+            return null;
+        }
+
         String resourceId;
         try {
             // noinspection unchecked

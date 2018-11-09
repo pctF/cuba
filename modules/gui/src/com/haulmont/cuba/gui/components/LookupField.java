@@ -23,7 +23,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 public interface LookupField<V> extends OptionsField<V, V>, HasInputPrompt, Buffered, LookupComponent,
-        Component.Focusable, HasOptionsStyleProvider {
+        Component.Focusable, HasOptionsStyleProvider<V> {
 
     String NAME = "lookupField";
 

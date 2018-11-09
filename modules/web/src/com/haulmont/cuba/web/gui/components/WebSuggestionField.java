@@ -18,8 +18,8 @@ package com.haulmont.cuba.web.gui.components;
 
 import com.haulmont.chile.core.model.MetaPropertyPath;
 import com.haulmont.cuba.core.entity.Entity;
-import com.haulmont.cuba.core.global.AppBeans;
 import com.haulmont.cuba.core.global.MetadataTools;
+import com.haulmont.cuba.core.global.UserSessionSource;
 import com.haulmont.cuba.gui.components.CaptionMode;
 import com.haulmont.cuba.gui.components.OptionsStyleProvider;
 import com.haulmont.cuba.gui.components.SuggestionField;
@@ -27,24 +27,24 @@ import com.haulmont.cuba.gui.executors.BackgroundTask;
 import com.haulmont.cuba.gui.executors.BackgroundTaskHandler;
 import com.haulmont.cuba.gui.executors.BackgroundWorker;
 import com.haulmont.cuba.gui.executors.TaskLifeCycle;
-import com.haulmont.cuba.security.global.UserSession;
 import com.haulmont.cuba.web.gui.components.converters.StringToEntityConverter;
 import com.haulmont.cuba.web.widgets.CubaSuggestionField;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 
+import javax.inject.Inject;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+import java.util.function.Function;
 
 public class WebSuggestionField<V> extends WebV8AbstractField<CubaSuggestionField<V>, V, V>
         implements SuggestionField<V>, InitializingBean {
 
     private static final Logger log = LoggerFactory.getLogger(WebSuggestionField.class);
 
-    protected BackgroundWorker backgroundWorker = AppBeans.get(BackgroundWorker.NAME);
-    protected UserSession userSession = AppBeans.get(UserSession.class);
     protected BackgroundTaskHandler<List<V>> handler;
 
     protected SearchExecutor<V> searchExecutor;
@@ -56,14 +56,31 @@ public class WebSuggestionField<V> extends WebV8AbstractField<CubaSuggestionFiel
 
     protected CaptionMode captionMode = CaptionMode.ITEM;
     protected String captionProperty;
-
-    protected MetadataTools metadataTools = AppBeans.get(MetadataTools.NAME);
     protected OptionsStyleProvider optionsStyleProvider;
+
+    protected BackgroundWorker backgroundWorker;
+    protected MetadataTools metadataTools;
+    protected Locale locale;
 
     public WebSuggestionField() {
         component = createComponent();
 
         attachValueChangeListener(component);
+    }
+
+    @Inject
+    protected void setBackgroundWorker(BackgroundWorker backgroundWorker) {
+        this.backgroundWorker = backgroundWorker;
+    }
+
+    @Inject
+    protected void setUserSessionSource(UserSessionSource userSessionSource) {
+        this.locale = userSessionSource.getLocale();
+    }
+
+    @Inject
+    protected void setMetadataTools(MetadataTools metadataTools) {
+        this.metadataTools = metadataTools;
     }
 
     protected CubaSuggestionField<V> createComponent() {
@@ -102,7 +119,7 @@ public class WebSuggestionField<V> extends WebV8AbstractField<CubaSuggestionFiel
         if (value instanceof Entity) {
             Entity entity = (Entity) value;
             if (captionMode == CaptionMode.ITEM) {
-                return entityConverter.convertToPresentation(entity, String.class, userSession.getLocale());
+                return entityConverter.convertToPresentation(entity, String.class, locale);
             }
 
             if (captionProperty != null && !"".equals(captionProperty)) {
@@ -116,7 +133,7 @@ public class WebSuggestionField<V> extends WebV8AbstractField<CubaSuggestionFiel
 
             log.warn("Using StringToEntityConverter to get entity text presentation. Caption property is not defined " +
                     "while caption mode is \"PROPERTY\"");
-            return entityConverter.convertToPresentation(entity, String.class, userSession.getLocale());
+            return entityConverter.convertToPresentation(entity, String.class, locale);
         }
 
         return metadataTools.format(value);
@@ -166,8 +183,9 @@ public class WebSuggestionField<V> extends WebV8AbstractField<CubaSuggestionFiel
     }
 
     protected BackgroundTask<Long, List<V>> getSearchSuggestionsTask(final String query) {
-        if (this.searchExecutor == null)
+        if (this.searchExecutor == null) {
             return null;
+        }
 
         final SearchExecutor<V> currentSearchExecutor = this.searchExecutor;
 
@@ -197,10 +215,6 @@ public class WebSuggestionField<V> extends WebV8AbstractField<CubaSuggestionFiel
             public void done(List<V> result) {
                 log.debug("Search results for '{}'", query);
                 handleSearchResult(result);
-            }
-
-            @Override
-            public void canceled() {
             }
 
             @Override
@@ -319,31 +333,6 @@ public class WebSuggestionField<V> extends WebV8AbstractField<CubaSuggestionFiel
     }
 
     @Override
-    public void commit() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void discard() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public boolean isBuffered() {
-        return false;
-    }
-
-    @Override
-    public void setBuffered(boolean buffered) {
-        throw new UnsupportedOperationException("Buffered mode isn't supported");
-    }
-
-    @Override
-    public boolean isModified() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
     public String getInputPrompt() {
         return component.getInputPrompt();
     }
@@ -399,5 +388,17 @@ public class WebSuggestionField<V> extends WebV8AbstractField<CubaSuggestionFiel
     @Override
     public OptionsStyleProvider getOptionsStyleProvider() {
         return optionsStyleProvider;
+    }
+
+    @Override
+    public void setOptionStyleProvider(Function<? super V, String> optionStyleProvider) {
+        // todo
+    }
+
+    @Override
+    public Function<? super V, String> getOptionStyleProvider() {
+        // todo
+
+        return null;
     }
 }

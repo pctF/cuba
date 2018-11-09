@@ -47,7 +47,7 @@ public class CubaComboBoxPickerField<T> extends CubaPickerField<T> {
         (getFieldInternal()).addValueChangeListener(this::onFieldValueChange);
     }
 
-    protected CubaComboBox<T> getFieldInternal() {
+    public CubaComboBox<T> getFieldInternal() {
         //noinspection unchecked
         return (CubaComboBox<T>) field;
     }

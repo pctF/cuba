@@ -17,6 +17,7 @@
 
 package com.haulmont.cuba.web.gui.components;
 
+import com.haulmont.bali.events.Subscription;
 import com.haulmont.cuba.client.ClientConfig;
 import com.haulmont.cuba.core.entity.Entity;
 import com.haulmont.cuba.core.global.Configuration;
@@ -31,6 +32,7 @@ import com.haulmont.cuba.gui.components.data.meta.OptionsBinding;
 import com.haulmont.cuba.gui.components.data.options.OptionsBinder;
 import com.haulmont.cuba.web.gui.components.util.ShortcutListenerDelegate;
 import com.haulmont.cuba.web.gui.icons.IconResolver;
+import com.haulmont.cuba.web.widgets.CubaComboBox;
 import com.haulmont.cuba.web.widgets.CubaComboBoxPickerField;
 import com.haulmont.cuba.web.widgets.CubaPickerField;
 import com.vaadin.event.ShortcutAction;
@@ -104,18 +106,21 @@ public class WebLookupPickerField<V extends Entity> extends WebPickerField<V>
 
     @Override
     protected void initComponent(CubaPickerField<V> component) {
-        ((CubaComboBoxPickerField<V>) component)
-                .setItemCaptionGenerator(this::generateItemCaption);
+        CubaComboBoxPickerField<V> impl = (CubaComboBoxPickerField<V>) component;
+        impl.setItemCaptionGenerator(this::generateItemCaption);
+        impl.getFieldInternal().setCustomValueEquals(this::fieldValueEquals);
 
         component.addShortcutListener(new ShortcutListenerDelegate("clearShortcut",
                 ShortcutAction.KeyCode.DELETE, new int[]{ShortcutAction.ModifierKey.SHIFT})
-                .withHandler((sender, target) -> {
-                    if (!isRequired()
-                            && isEnabledRecursive()
-                            && isEditableWithParent()) {
-                        setValue(null);
-                    }
-                }));
+                .withHandler(this::handleClearShortcut));
+    }
+
+    protected void handleClearShortcut(@SuppressWarnings("unused") Object sender, @SuppressWarnings("unused") Object target) {
+        if (!isRequired()
+                && isEnabledRecursive()
+                && isEditableWithParent()) {
+            setValue(null);
+        }
     }
 
     protected String generateDefaultItemCaption(V item) {
@@ -137,6 +142,14 @@ public class WebLookupPickerField<V extends Entity> extends WebPickerField<V>
         }
 
         return generateDefaultItemCaption(item);
+    }
+
+    protected String generateItemStylename(V item) {
+        if (optionsStyleProvider == null) {
+            return null;
+        }
+
+        return this.optionsStyleProvider.getItemStyleName(this, item);
     }
 
     @Override
@@ -198,7 +211,7 @@ public class WebLookupPickerField<V extends Entity> extends WebPickerField<V>
     }
 
     @Override
-    public void addFieldListener(FieldListener listener) {
+    public Subscription addFieldValueChangeListener(Consumer<FieldValueChangeEvent<V>> listener) {
         throw new UnsupportedOperationException();
     }
 
@@ -265,11 +278,7 @@ public class WebLookupPickerField<V extends Entity> extends WebPickerField<V>
             // noinspection unchecked
             this.optionIconProvider = optionIconProvider;
 
-            if (optionIconProvider == null) {
-                getComponent().setItemIconGenerator(null);
-            } else {
-                getComponent().setItemIconGenerator(this::generateOptionIcon);
-            }
+            getComponent().setItemIconGenerator(this::generateOptionIcon);
         }
     }
 
@@ -300,13 +309,6 @@ public class WebLookupPickerField<V extends Entity> extends WebPickerField<V>
     @Override
     public void setFilterPredicate(FilterPredicate filterPredicate) {
         this.filterPredicate = filterPredicate;
-
-        if (filterPredicate != null) {
-            // VAADIN8: gg, implement
-//            component.setFilterPredicate(filterPredicate::test);
-        } else {
-//            component.setFilterPredicate(null);
-        }
     }
 
     @Override
@@ -334,15 +336,12 @@ public class WebLookupPickerField<V extends Entity> extends WebPickerField<V>
 
     @Override
     public void setOptionsStyleProvider(OptionsStyleProvider optionsStyleProvider) {
-        this.optionsStyleProvider = optionsStyleProvider;
+        if (this.optionsStyleProvider != optionsStyleProvider) {
+            this.optionsStyleProvider = optionsStyleProvider;
 
-//        vaadin8
-        /*if (optionsStyleProvider != null) {
-            component.setItemStyleGenerator((comboBox, item) ->
-                    optionsStyleProvider.getItemStyleName(this, item));
-        } else {
-            component.setItemStyleGenerator(null);
-        }*/
+            CubaComboBox<V> comboBox = ((CubaComboBoxPickerField<V>) component).getFieldInternal();
+            comboBox.setStyleGenerator(this::generateItemStylename);
+        }
     }
 
     @Override
@@ -374,6 +373,10 @@ public class WebLookupPickerField<V extends Entity> extends WebPickerField<V>
     }
 
     protected boolean filterItemTest(String itemCaption, String filterText) {
+        if (filterPredicate != null) {
+            return filterPredicate.test(itemCaption, filterText);
+        }
+
         if (filterMode == FilterMode.NO) {
             return true;
         }
