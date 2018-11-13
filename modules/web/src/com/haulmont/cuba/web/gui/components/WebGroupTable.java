@@ -911,9 +911,12 @@ public class WebGroupTable<E extends Entity> extends WebAbstractTable<CubaGroupT
                 Object columnId = context.getColumnId();
                 try {
                     Object parsedValue = getParsedAggregationValue(value, columnId);
+                    Collection<E> scope = Collections.emptyList();
 
-                    Collection<Entity> scope = Collections.emptyList();
-                    if (context instanceof GroupAggregationInputValueChangeContext) {
+                    if (context.isTotalAggregation()) {
+                        //noinspection unchecked
+                        scope = getDatasource().getItems();
+                    } else if (context instanceof GroupAggregationInputValueChangeContext) {
                         Object groupId = ((GroupAggregationInputValueChangeContext) context).getGroupInfo();
                         if (groupId instanceof GroupInfo) {
                             //noinspection unchecked
@@ -922,8 +925,9 @@ public class WebGroupTable<E extends Entity> extends WebAbstractTable<CubaGroupT
                     }
 
                     //noinspection unchecked
-                    AggregationDistributionContext aggregationDistributionEvent =
-                            new AggregationDistributionContext(columnId, parsedValue, scope, context.isTotalAggregation());
+                    AggregationDistributionContext<E> aggregationDistributionEvent =
+                            new AggregationDistributionContext<>(getColumnNN(columnId.toString()),
+                                    parsedValue, scope, context.isTotalAggregation());
                     distributionProvider.onDistribution(aggregationDistributionEvent);
                 } catch (ParseException e) {
                     showParseErrorNotification();

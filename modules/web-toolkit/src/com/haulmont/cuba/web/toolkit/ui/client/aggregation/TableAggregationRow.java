@@ -166,6 +166,7 @@ public class TableAggregationRow extends Panel {
         InputElement inputElement = DOM.createInputText().cast();
         inputElement.setValue(text);
         inputElement.addClassName("v-textfield v-widget");
+        inputElement.addClassName("c-total-aggregation-textfield");
         Style elemStyle = inputElement.getStyle();
         elemStyle.setWidth(100, Style.Unit.PCT);
 

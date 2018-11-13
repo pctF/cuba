@@ -443,13 +443,13 @@ public interface Table<E extends Entity>
      *
      * @param distributionProvider
      */
-    void setAggregationDistributionProvider(AggregationDistributionProvider distributionProvider);
+    void setAggregationDistributionProvider(AggregationDistributionProvider<E> distributionProvider);
 
     /**
      *
      * @return
      */
-    AggregationDistributionProvider getAggregationDistributionProvider();
+    AggregationDistributionProvider<E> getAggregationDistributionProvider();
 
     /**
      * Show popup inside of Table, relative to last cell click event.<br>
@@ -933,37 +933,37 @@ public interface Table<E extends Entity>
     /**
      *
      */
-    interface AggregationDistributionProvider {
+    interface AggregationDistributionProvider<E> {
 
-        void onDistribution(AggregationDistributionContext context);
+        void onDistribution(AggregationDistributionContext<E> context);
     }
 
     /**
      *
      */
-    class AggregationDistributionContext {
-        protected Object columnId;
+    class AggregationDistributionContext<E> {
+        protected Column column;
         protected Object value;
-        protected Collection<Entity> scope;
+        protected Collection<E> scope;
         protected boolean isTotalAggregation;
 
-        public AggregationDistributionContext(Object columnId, Object value, Collection<Entity> scope,
+        public AggregationDistributionContext(Column column, Object value, Collection<E> scope,
                                               boolean isTotalAggregation) {
-            this.columnId = columnId;
+            this.column = column;
             this.value = value;
             this.scope = scope;
             this.isTotalAggregation = isTotalAggregation;
         }
 
-        public Object getColumnId() {
-            return columnId;
+        public Column getColumn() {
+            return column;
         }
 
         public Object getValue() {
             return value;
         }
 
-        public Collection<Entity> getScope() {
+        public Collection<E> getScope() {
             return scope;
         }
 

@@ -149,6 +149,9 @@ public class CubaGroupTable extends CubaTable implements GroupTableContainer {
                     isAddedToCache = true;
                 }
             }
+
+            addEditableAggregationColumns(target);
+
             target.endTag("groupRows");
         }
 

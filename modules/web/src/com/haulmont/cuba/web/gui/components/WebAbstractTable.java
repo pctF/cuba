@@ -2874,10 +2874,10 @@ public abstract class WebAbstractTable<T extends com.vaadin.ui.Table & CubaEnhan
                 try {
                     Object parsedValue = getParsedAggregationValue(value, columnId);
                     //noinspection unchecked
-                    AggregationDistributionContext aggregationDistributionEvent =
-                            new AggregationDistributionContext(columnId, parsedValue, getDatasource().getItems(),
-                                    context.isTotalAggregation());
-                    distributionProvider.onDistribution(aggregationDistributionEvent);
+                    AggregationDistributionContext<E> distributionContext =
+                            new AggregationDistributionContext<E>(getColumn(columnId.toString()),
+                                    parsedValue, getDatasource().getItems(), context.isTotalAggregation());
+                    distributionProvider.onDistribution(distributionContext);
                 } catch (ParseException e) {
                     showParseErrorNotification();
                     return false; // rollback to previous value
