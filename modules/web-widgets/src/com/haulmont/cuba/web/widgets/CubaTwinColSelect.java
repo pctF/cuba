@@ -26,13 +26,13 @@ import java.util.function.Function;
 @SuppressWarnings("serial")
 public class CubaTwinColSelect<V> extends TwinColSelect<V> {
 
-    protected Function<CubaOptionStyleItem, String> styleProvider;
+    protected Function<CubaOptionStyleItem<V>, String> styleProvider;
 
     public CubaTwinColSelect() {
         addDataGenerator(createDataGenerator());
     }
 
-    public void setOptionStyleProvider(Function<CubaOptionStyleItem, String> styleProvider) {
+    public void setOptionStyleProvider(Function<CubaOptionStyleItem<V>, String> styleProvider) {
         this.styleProvider = styleProvider;
         refreshDataItems();
     }
@@ -70,7 +70,7 @@ public class CubaTwinColSelect<V> extends TwinColSelect<V> {
         @Override
         public void generateData(V item, JsonObject jsonObject) {
             if (styleProvider != null) {
-                String style = styleProvider.apply(new CubaOptionStyleItem(isSelected(item), item));
+                String style = styleProvider.apply(new CubaOptionStyleItem<>(isSelected(item), item));
                 if (!Strings.isNullOrEmpty(style)) {
                     jsonObject.put("style", style);
                 }
@@ -78,7 +78,7 @@ public class CubaTwinColSelect<V> extends TwinColSelect<V> {
         }
     }
 
-    public class CubaOptionStyleItem {
+    public static class CubaOptionStyleItem<V> {
         protected boolean selected;
         protected V item;
 

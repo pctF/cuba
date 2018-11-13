@@ -32,6 +32,7 @@ import com.haulmont.cuba.gui.components.data.options.MapOptions;
 import com.haulmont.cuba.gui.components.data.options.OptionsBinder;
 import com.haulmont.cuba.web.gui.icons.IconResolver;
 import com.haulmont.cuba.web.widgets.CubaTwinColSelect;
+import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.InitializingBean;
 
 import javax.inject.Inject;
@@ -104,11 +105,12 @@ public class WebTwinColumn<V> extends WebV8AbstractField<CubaTwinColSelect<V>, S
         component.setItems(options);
 
         // set value to Vaadin component as it removes value after setItems
-        if (getValue() != null && !getValue().isEmpty()) {
+        Collection<V> optionValues = getValue();
+        if (CollectionUtils.isNotEmpty(optionValues)) {
             List<V> items = getOptions().getOptions().collect(Collectors.toList());
 
             Set<V> values = new HashSet<>();
-            for (V value : getValue()) {
+            for (V value : optionValues) {
                 if (items.contains(value)) {
                     values.add(value);
                 }
