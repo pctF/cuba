@@ -48,20 +48,24 @@ public class WebListEditor<V> extends WebV8AbstractField<WebListEditor.CubaListE
 
     @Override
     public void afterPropertiesSet() {
-        initComponent();
+        initComponent(component);
     }
 
     protected CubaListEditor<V> createComponent() {
         return new CubaListEditor<>(delegate.getLayout());
     }
 
-    protected void initComponent() {
-        delegate.setActualField(this);
-        setStyleName(LISTEDITOR_STYLENAME);
+    protected void initComponent(Component component) {
+        component.setStyleName(LISTEDITOR_STYLENAME);
     }
 
     protected void initDelegate() {
-        delegate = AppBeans.get(ListEditorDelegate.NAME);
+        delegate = createDelegate();
+        delegate.setActualField(this);
+    }
+
+    protected ListEditorDelegate<V> createDelegate() {
+        return AppBeans.get(ListEditorDelegate.NAME);
     }
 
     @Override

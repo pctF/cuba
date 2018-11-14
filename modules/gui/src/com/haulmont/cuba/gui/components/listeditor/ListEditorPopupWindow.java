@@ -43,7 +43,6 @@ import java.math.BigDecimal;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * A dialog that is used for editing values of the {@link ListEditor} component.
@@ -280,7 +279,7 @@ public class ListEditorPopupWindow extends AbstractWindow implements ListEditorW
                 if (items != null && items.size() > 0) {
                     for (Object item : items) {
                         if (item != null && !valueExists(item)) {
-                            this.addValueToLayout(item, ListEditorHelper.getValueCaption(item, itemType, timeZone, captionProvider));
+                            this.addValueToLayout(item, ListEditorHelper.getValueCaption(item, itemType, timeZone));
                         }
                     }
                 }
@@ -299,6 +298,7 @@ public class ListEditorPopupWindow extends AbstractWindow implements ListEditorW
                 optionsDs.refresh();
             }
             lookupField.setOptionsDatasource(optionsDs);
+            lookupField.setOptionCaptionProvider(captionProvider);
             componentForEntity = lookupField;
 
             componentForEntity.addValueChangeListener(e -> {
