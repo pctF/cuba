@@ -909,6 +909,7 @@ public class WebGroupTable<E extends Entity> extends WebAbstractTable<CubaGroupT
             if (distributionProvider != null) {
                 String value = context.getValue();
                 Object columnId = context.getColumnId();
+                GroupInfo groupInfo = null;
                 try {
                     Object parsedValue = getParsedAggregationValue(value, columnId);
                     Collection<E> scope = Collections.emptyList();
@@ -919,16 +920,17 @@ public class WebGroupTable<E extends Entity> extends WebAbstractTable<CubaGroupT
                     } else if (context instanceof GroupAggregationInputValueChangeContext) {
                         Object groupId = ((GroupAggregationInputValueChangeContext) context).getGroupInfo();
                         if (groupId instanceof GroupInfo) {
+                            groupInfo = (GroupInfo) groupId;
                             //noinspection unchecked
-                            scope = getDatasource().getChildItems((GroupInfo) groupId);
+                            scope = getDatasource().getChildItems(groupInfo);
                         }
                     }
 
                     //noinspection unchecked
-                    AggregationDistributionContext<E> aggregationDistributionEvent =
-                            new AggregationDistributionContext<>(getColumnNN(columnId.toString()),
-                                    parsedValue, scope, context.isTotalAggregation());
-                    distributionProvider.onDistribution(aggregationDistributionEvent);
+                    GroupAggregationDistributionContext<E> aggregationDistribution =
+                            new GroupAggregationDistributionContext(getColumnNN(columnId.toString()),
+                                    parsedValue, scope, groupInfo, context.isTotalAggregation());
+                    distributionProvider.onDistribution(aggregationDistribution);
                 } catch (ParseException e) {
                     showParseErrorNotification();
                     return false; // rollback to previous value
