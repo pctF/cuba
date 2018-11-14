@@ -17,11 +17,14 @@
 package com.haulmont.cuba.gui.components;
 
 import com.haulmont.cuba.core.entity.Entity;
-import com.haulmont.cuba.gui.components.compatibility.TwinColumnStyleProviderAdapter;
 
 import java.util.Collection;
-import java.util.function.Function;
 
+/**
+ * A component with two lists: left list for available options, right list for selected values.
+ *
+ * @param <V> value and options type for the component
+ */
 public interface TwinColumn<V> extends OptionsField<Collection<V>, V> {
 
     String NAME = "twinColumn";
@@ -47,19 +50,47 @@ public interface TwinColumn<V> extends OptionsField<Collection<V>, V> {
     @Deprecated
     void setColumns(int columns);
 
+    /**
+     * @return the number of visible rows
+     */
     int getRows();
+
+    /**
+     * Sets the number of visible rows.
+     *
+     * @param rows number of visible rows
+     */
     void setRows(int rows);
 
     /**
      * @param styleProvider style provider
-     * @deprecated use {@link #setOptionStyleProvider(Function)} instead
+     * @deprecated use {@link #setOptionStyleProvider(OptionStyleProvider)} instead
      */
     @Deprecated
     default void setStyleProvider(StyleProvider styleProvider) {
-        setOptionStyleProvider(new TwinColumnStyleProviderAdapter<>(styleProvider));
+        if (styleProvider == null) {
+            setOptionStyleProvider(null);
+        } else {
+            setOptionStyleProvider((item, selected) -> {
+                if (item instanceof Entity) {
+                    return styleProvider.getStyleName((Entity) item, ((Entity) item).getId(), selected);
+                } else {
+                    return null;
+                }
+            });
+        }
     }
 
+    /**
+     * Enables "Add all" and "Remove all" buttons.
+     *
+     * @param enabled true if buttons should be enabled
+     */
     void setAddAllBtnEnabled(boolean enabled);
+
+    /**
+     * @return true if buttons are enabled
+     */
     boolean isAddAllBtnEnabled();
 
     /**
@@ -93,15 +124,15 @@ public interface TwinColumn<V> extends OptionsField<Collection<V>, V> {
      *
      * @param optionStyleProvider option style provider function
      */
-    void setOptionStyleProvider(Function<OptionStyleItem<V>, String> optionStyleProvider);
+    void setOptionStyleProvider(OptionStyleProvider<V> optionStyleProvider);
 
     /**
      * @return option style provider function
      */
-    Function<OptionStyleItem<V>, String> getOptionStyleProvider();
+    OptionStyleProvider<V> getOptionStyleProvider();
 
     /**
-     * @deprecated use {@link #setOptionStyleProvider(Function)}
+     * @deprecated use {@link #setOptionStyleProvider(OptionStyleProvider)}
      */
     @Deprecated
     interface StyleProvider {
@@ -110,25 +141,17 @@ public interface TwinColumn<V> extends OptionsField<Collection<V>, V> {
     }
 
     /**
-     * Represents item for option style provider.
-     *
      * @param <V> option type
      */
-    class OptionStyleItem<V> {
-        protected V item;
-        protected boolean selected;
+    interface OptionStyleProvider<V> {
 
-        public OptionStyleItem(V item, boolean selected) {
-            this.item = item;
-            this.selected = selected;
-        }
-
-        public boolean isSelected() {
-            return selected;
-        }
-
-        public V getItem() {
-            return item;
-        }
+        /**
+         * Handles style name for the item.
+         *
+         * @param item     item to create style name
+         * @param selected is item selected
+         * @return style name for the item
+         */
+        String getStyleName(V item, boolean selected);
     }
 }

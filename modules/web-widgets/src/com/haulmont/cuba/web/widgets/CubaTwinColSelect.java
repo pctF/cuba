@@ -21,18 +21,16 @@ import com.vaadin.data.provider.DataGenerator;
 import com.vaadin.ui.TwinColSelect;
 import elemental.json.JsonObject;
 
-import java.util.function.Function;
-
 @SuppressWarnings("serial")
 public class CubaTwinColSelect<V> extends TwinColSelect<V> {
 
-    protected Function<CubaOptionStyleItem<V>, String> styleProvider;
+    protected CubaOptionStyleProvider<V> styleProvider;
 
     public CubaTwinColSelect() {
         addDataGenerator(createDataGenerator());
     }
 
-    public void setOptionStyleProvider(Function<CubaOptionStyleItem<V>, String> styleProvider) {
+    public void setOptionStyleProvider(CubaOptionStyleProvider<V> styleProvider) {
         this.styleProvider = styleProvider;
         refreshDataItems();
     }
@@ -70,7 +68,7 @@ public class CubaTwinColSelect<V> extends TwinColSelect<V> {
         @Override
         public void generateData(V item, JsonObject jsonObject) {
             if (styleProvider != null) {
-                String style = styleProvider.apply(new CubaOptionStyleItem<>(isSelected(item), item));
+                String style = styleProvider.getStyleName(item, isSelected(item));
                 if (!Strings.isNullOrEmpty(style)) {
                     jsonObject.put("style", style);
                 }
@@ -78,20 +76,8 @@ public class CubaTwinColSelect<V> extends TwinColSelect<V> {
         }
     }
 
-    public static class CubaOptionStyleItem<V> {
-        protected boolean selected;
-        protected V item;
+    public interface CubaOptionStyleProvider<V> {
 
-        public CubaOptionStyleItem(boolean selected, V item) {
-            this.selected = selected;
-            this.item = item;
-        }
-
-        public boolean isSelected() {
-            return selected;
-        }
-
-        public V getItem() {
-            return item;
-        }
-    }}
+        String getStyleName(V item, boolean selected);
+    }
+}

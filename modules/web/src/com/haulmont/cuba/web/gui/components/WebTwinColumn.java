@@ -47,7 +47,7 @@ public class WebTwinColumn<V> extends WebV8AbstractField<CubaTwinColSelect<V>, S
     protected OptionsBinding<V> optionsBinding;
 
     protected Function<? super V, String> optionCaptionProvider;
-    protected Function<OptionStyleItem<V>, String> optionStyleProvider;
+    protected OptionStyleProvider<V> optionStyleProvider;
 
     protected int columns;
 
@@ -181,21 +181,18 @@ public class WebTwinColumn<V> extends WebV8AbstractField<CubaTwinColSelect<V>, S
     }
 
     @Override
-    public void setOptionStyleProvider(Function<OptionStyleItem<V>, String> optionStyleProvider) {
+    public void setOptionStyleProvider(OptionStyleProvider<V> optionStyleProvider) {
         this.optionStyleProvider = optionStyleProvider;
 
         if (optionStyleProvider != null) {
-            component.setOptionStyleProvider(styleProvider ->
-                    optionStyleProvider.apply(new OptionStyleItem<>(
-                            styleProvider.getItem(), styleProvider.isSelected()))
-            );
+            component.setOptionStyleProvider(optionStyleProvider::getStyleName);
         } else {
             component.setOptionStyleProvider(null);
         }
     }
 
     @Override
-    public Function<OptionStyleItem<V>, String> getOptionStyleProvider() {
+    public OptionStyleProvider<V> getOptionStyleProvider() {
         return optionStyleProvider;
     }
 
