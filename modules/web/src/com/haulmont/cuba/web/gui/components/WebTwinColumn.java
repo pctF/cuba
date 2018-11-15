@@ -24,6 +24,7 @@ import com.haulmont.cuba.core.global.AppBeans;
 import com.haulmont.cuba.core.global.MetadataTools;
 import com.haulmont.cuba.gui.components.CaptionMode;
 import com.haulmont.cuba.gui.components.TwinColumn;
+import com.haulmont.cuba.gui.components.data.ConversionException;
 import com.haulmont.cuba.gui.components.data.Options;
 import com.haulmont.cuba.gui.components.data.meta.EntityOptions;
 import com.haulmont.cuba.gui.components.data.meta.EntityValueSource;
@@ -57,6 +58,8 @@ public class WebTwinColumn<V> extends WebV8AbstractField<CubaTwinColSelect<V>, S
 
     protected String captionProperty;
     protected CaptionMode captionMode;
+
+    protected Class<Collection<V>> collectionClass;
 
     public WebTwinColumn() {
         component = createComponent();
@@ -118,6 +121,40 @@ public class WebTwinColumn<V> extends WebV8AbstractField<CubaTwinColSelect<V>, S
 
             component.setValue(values);
         }
+    }
+
+    @Override
+    protected Set<V> convertToPresentation(Collection<V> modelValue) throws ConversionException {
+        if (modelValue instanceof Set) {
+            return (Set<V>) modelValue;
+        }
+
+        //noinspection unchecked
+        collectionClass = (Class<Collection<V>>) modelValue.getClass();
+
+        return new LinkedHashSet<>(modelValue);
+    }
+
+    @Override
+    protected Collection<V> convertToModel(Set<V> componentRawValue) throws ConversionException {
+        if (collectionClass == null) {
+            return super.convertToModel(componentRawValue);
+        }
+
+        if (collectionClass.isAssignableFrom(Set.class)) {
+            return componentRawValue;
+        }
+
+        Collection<V> collection;
+        try {
+            collection = collectionClass.newInstance();
+        } catch (InstantiationException | IllegalAccessException e) {
+            return new ArrayList<>(componentRawValue);
+        }
+
+        collection.addAll(componentRawValue);
+
+        return collection;
     }
 
     @Override
