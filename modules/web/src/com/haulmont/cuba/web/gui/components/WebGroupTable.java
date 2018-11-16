@@ -905,39 +905,41 @@ public class WebGroupTable<E extends Entity> extends WebAbstractTable<CubaGroupT
     public void setAggregationDistributionProvider(AggregationDistributionProvider distributionProvider) {
         this.distributionProvider = distributionProvider;
 
-        component.setAggregationDistributionProvider(context -> {
-            if (distributionProvider != null) {
-                String value = context.getValue();
-                Object columnId = context.getColumnId();
-                GroupInfo groupInfo = null;
-                try {
-                    Object parsedValue = getParsedAggregationValue(value, columnId);
-                    Collection<E> scope = Collections.emptyList();
+        component.setAggregationDistributionProvider(this::distributeGroupAggregation);
+    }
 
-                    if (context.isTotalAggregation()) {
-                        //noinspection unchecked
-                        scope = getDatasource().getItems();
-                    } else if (context instanceof GroupAggregationInputValueChangeContext) {
-                        Object groupId = ((GroupAggregationInputValueChangeContext) context).getGroupInfo();
-                        if (groupId instanceof GroupInfo) {
-                            groupInfo = (GroupInfo) groupId;
-                            //noinspection unchecked
-                            scope = getDatasource().getChildItems(groupInfo);
-                        }
-                    }
+    protected boolean distributeGroupAggregation(AggregationInputValueChangeContext context) {
+        if (distributionProvider != null) {
+            String value = context.getValue();
+            Object columnId = context.getColumnId();
+            GroupInfo groupInfo = null;
+            try {
+                Object parsedValue = getParsedAggregationValue(value, columnId);
+                Collection<E> scope = Collections.emptyList();
 
+                if (context.isTotalAggregation()) {
                     //noinspection unchecked
-                    GroupAggregationDistributionContext<E> aggregationDistribution =
-                            new GroupAggregationDistributionContext(getColumnNN(columnId.toString()),
-                                    parsedValue, scope, groupInfo, context.isTotalAggregation());
-                    distributionProvider.onDistribution(aggregationDistribution);
-                } catch (ParseException e) {
-                    showParseErrorNotification();
-                    return false; // rollback to previous value
+                    scope = getDatasource().getItems();
+                } else if (context instanceof GroupAggregationInputValueChangeContext) {
+                    Object groupId = ((GroupAggregationInputValueChangeContext) context).getGroupInfo();
+                    if (groupId instanceof GroupInfo) {
+                        groupInfo = (GroupInfo) groupId;
+                        //noinspection unchecked
+                        scope = getDatasource().getChildItems(groupInfo);
+                    }
                 }
+
+                //noinspection unchecked
+                GroupAggregationDistributionContext<E> aggregationDistribution =
+                        new GroupAggregationDistributionContext(getColumnNN(columnId.toString()),
+                                parsedValue, scope, groupInfo, context.isTotalAggregation());
+                distributionProvider.onDistribution(aggregationDistribution);
+            } catch (ParseException e) {
+                showParseErrorNotification();
+                return false; // rollback to previous value
             }
-            return true;
-        });
+        }
+        return true;
     }
 
     protected class AggregatableGroupPropertyValueFormatter extends DefaultGroupPropertyValueFormatter {

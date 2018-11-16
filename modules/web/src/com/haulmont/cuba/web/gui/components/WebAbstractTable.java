@@ -2867,24 +2867,26 @@ public abstract class WebAbstractTable<T extends com.vaadin.ui.Table & CubaEnhan
     public void setAggregationDistributionProvider(AggregationDistributionProvider distributionProvider) {
         this.distributionProvider = distributionProvider;
 
-        component.setAggregationDistributionProvider(context -> {
-            if (distributionProvider != null) {
-                String value = context.getValue();
-                Object columnId = context.getColumnId();
-                try {
-                    Object parsedValue = getParsedAggregationValue(value, columnId);
-                    //noinspection unchecked
-                    AggregationDistributionContext<E> distributionContext =
-                            new AggregationDistributionContext<E>(getColumn(columnId.toString()),
-                                    parsedValue, getDatasource().getItems(), context.isTotalAggregation());
-                    distributionProvider.onDistribution(distributionContext);
-                } catch (ParseException e) {
-                    showParseErrorNotification();
-                    return false; // rollback to previous value
-                }
+        component.setAggregationDistributionProvider(this::distributeAggregation);
+    }
+
+    protected boolean distributeAggregation(AggregationInputValueChangeContext context) {
+        if (distributionProvider != null) {
+            String value = context.getValue();
+            Object columnId = context.getColumnId();
+            try {
+                Object parsedValue = getParsedAggregationValue(value, columnId);
+                //noinspection unchecked
+                AggregationDistributionContext<E> distributionContext =
+                        new AggregationDistributionContext<E>(getColumn(columnId.toString()),
+                                parsedValue, getDatasource().getItems(), context.isTotalAggregation());
+                distributionProvider.onDistribution(distributionContext);
+            } catch (ParseException e) {
+                showParseErrorNotification();
+                return false; // rollback to previous value
             }
-            return true;
-        });
+        }
+        return true;
     }
 
     @Override
