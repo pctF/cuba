@@ -3151,42 +3151,40 @@ public abstract class WebAbstractTable<T extends com.vaadin.ui.Table & CubaEnhan
         Object parsedValue = value;
 
         for (Column column : getColumns()) {
-            if (column.getId() != columnId) {
-                continue;
-            }
-
-            AggregationInfo aggregationInfo = column.getAggregation();
-            if (aggregationInfo == null || aggregationInfo.getFormatter() != null) {
-                return parsedValue;
-            }
-
-            MetaPropertyPath propertyPath = aggregationInfo.getPropertyPath();
-            Class resultClass;
-            Range range = propertyPath != null ? propertyPath.getRange() : null;
-            if (range != null && range.isDatatype()) {
-                if (aggregationInfo.getType() == AggregationInfo.Type.COUNT) {
+            if (column.getId().equals(columnId)) {
+                AggregationInfo aggregationInfo = column.getAggregation();
+                if (aggregationInfo == null || aggregationInfo.getFormatter() != null) {
                     return parsedValue;
                 }
 
-                if (aggregationInfo.getStrategy() == null) {
-                    Class rangeJavaClass = propertyPath.getRangeJavaClass();
-                    Aggregation aggregation = Aggregations.get(rangeJavaClass);
-                    resultClass = aggregation.getResultClass();
+                MetaPropertyPath propertyPath = aggregationInfo.getPropertyPath();
+                Class resultClass;
+                Range range = propertyPath != null ? propertyPath.getRange() : null;
+                if (range != null && range.isDatatype()) {
+                    if (aggregationInfo.getType() == AggregationInfo.Type.COUNT) {
+                        return parsedValue;
+                    }
+
+                    if (aggregationInfo.getStrategy() == null) {
+                        Class rangeJavaClass = propertyPath.getRangeJavaClass();
+                        Aggregation aggregation = Aggregations.get(rangeJavaClass);
+                        resultClass = aggregation.getResultClass();
+                    } else {
+                        resultClass = aggregationInfo.getStrategy().getResultClass();
+                    }
+
+                } else if (aggregationInfo.getStrategy() == null) {
+                    return parsedValue;
                 } else {
                     resultClass = aggregationInfo.getStrategy().getResultClass();
                 }
 
-            } else if (aggregationInfo.getStrategy() == null) {
-                return parsedValue;
-            } else {
-                resultClass = aggregationInfo.getStrategy().getResultClass();
+                UserSessionSource userSessionSource = AppBeans.get(UserSessionSource.NAME);
+                Locale locale = userSessionSource.getLocale();
+                parsedValue = Datatypes.getNN(resultClass).parse(value, locale);
+
+                break;
             }
-
-            UserSessionSource userSessionSource = AppBeans.get(UserSessionSource.NAME);
-            Locale locale = userSessionSource.getLocale();
-            parsedValue = Datatypes.getNN(resultClass).parse(value, locale);
-
-            break;
         }
         return parsedValue;
     }
