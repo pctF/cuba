@@ -450,6 +450,18 @@ public class WebGroupTable<E extends Entity> extends WebAbstractTable<CubaGroupT
         super.selectAll();
     }
 
+    @SuppressWarnings("unchecked")
+    @Override
+    public E getSingleSelected() {
+        final Set selected = getSelectedItemIds();
+        Object itemId = selected == null || selected.isEmpty()
+                ? null
+                : selected.stream()
+                .filter(id -> datasource.containsItem(id))
+                .findFirst().orElse(null);
+        return itemId != null ? (E) datasource.getItem(itemId) : null;
+    }
+
     protected class GroupTableDsWrapper extends SortableCollectionDsWrapper
             implements GroupTableContainer, AggregationContainer {
 
