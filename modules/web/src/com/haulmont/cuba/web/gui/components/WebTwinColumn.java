@@ -102,6 +102,18 @@ public class WebTwinColumn<V> extends WebV8AbstractField<CubaTwinColSelect<V>, S
         } else {
             setCaptionMode(CaptionMode.ITEM);
         }
+
+        collectionClass = null;
+    }
+
+    @Override
+    public void setValue(Collection<V> value) {
+        super.setValue(value);
+
+        if (collectionClass == null) {
+            //noinspection unchecked
+            collectionClass = (Class<Collection<V>>) value.getClass();
+        }
     }
 
     protected void setItemsToPresentation(Stream<V> options) {
@@ -129,32 +141,20 @@ public class WebTwinColumn<V> extends WebV8AbstractField<CubaTwinColSelect<V>, S
             return (Set<V>) modelValue;
         }
 
-        //noinspection unchecked
-        collectionClass = (Class<Collection<V>>) modelValue.getClass();
-
-        return new LinkedHashSet<>(modelValue);
+        return modelValue == null ?
+                new LinkedHashSet<>() : new LinkedHashSet<>(modelValue);
     }
 
     @Override
     protected Collection<V> convertToModel(Set<V> componentRawValue) throws ConversionException {
-        if (collectionClass == null) {
-            return super.convertToModel(componentRawValue);
+        if (collectionClass != null) {
+            if (Set.class.isAssignableFrom(collectionClass)) {
+                return componentRawValue;
+            } else if (List.class.isAssignableFrom(collectionClass)) {
+                return new LinkedList<>(componentRawValue);
+            }
         }
-
-        if (collectionClass.isAssignableFrom(Set.class)) {
-            return componentRawValue;
-        }
-
-        Collection<V> collection;
-        try {
-            collection = collectionClass.newInstance();
-        } catch (InstantiationException | IllegalAccessException e) {
-            return new ArrayList<>(componentRawValue);
-        }
-
-        collection.addAll(componentRawValue);
-
-        return collection;
+        return super.convertToModel(componentRawValue);
     }
 
     @Override
