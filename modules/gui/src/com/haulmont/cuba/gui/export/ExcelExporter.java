@@ -22,6 +22,7 @@ import com.haulmont.chile.core.datatypes.impl.EnumClass;
 import com.haulmont.chile.core.model.Instance;
 import com.haulmont.chile.core.model.MetaProperty;
 import com.haulmont.chile.core.model.MetaPropertyPath;
+import com.haulmont.chile.core.model.Range;
 import com.haulmont.chile.core.model.utils.InstanceUtils;
 import com.haulmont.cuba.core.entity.Entity;
 import com.haulmont.cuba.core.entity.IdProxy;
@@ -689,7 +690,15 @@ public class ExcelExporter {
 
         if (cellValue instanceof Number) {
             Number n = (Number) cellValue;
-            final Datatype datatype = Datatypes.getNN(n.getClass());
+            Datatype datatype = null;
+            if (metaPropertyPath != null) {
+                Range range = metaPropertyPath.getMetaProperty().getRange();
+                if (range.isDatatype()) {
+                    datatype = range.asDatatype();
+                }
+            }
+
+            datatype = datatype == null ? Datatypes.getNN(n.getClass()) : datatype;
             String str;
             if (sizersIndex == 0) {
                 str = createSpaceString(level) + datatype.format(n);
