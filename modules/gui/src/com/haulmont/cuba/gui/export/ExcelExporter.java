@@ -41,6 +41,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.poi.hssf.usermodel.*;
 import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.CellType;
+import org.apache.poi.ss.usermodel.DataFormat;
 import org.apache.poi.ss.usermodel.VerticalAlignment;
 import org.apache.poi.util.LocaleUtil;
 import org.dom4j.Element;
@@ -413,8 +414,9 @@ public class ExcelExporter {
         integerFormatCellStyle = wb.createCellStyle();
         integerFormatCellStyle.setDataFormat(HSSFDataFormat.getBuiltinFormat("#,##0"));
 
+        DataFormat format = wb.createDataFormat();
         doubleFormatCellStyle = wb.createCellStyle();
-        doubleFormatCellStyle.setDataFormat(HSSFDataFormat.getBuiltinFormat("#,##0.00"));
+        doubleFormatCellStyle.setDataFormat(format.getFormat("#,##0.################"));
     }
 
     @SuppressWarnings("unchecked")
@@ -700,7 +702,9 @@ public class ExcelExporter {
 
             datatype = datatype == null ? Datatypes.getNN(n.getClass()) : datatype;
             String str;
-            if (sizersIndex == 0) {
+            // level is used for TreeTable, so level with 0 doesn't create spacing
+            // and we should skip it
+            if (sizersIndex == 0 && level > 0) {
                 str = createSpaceString(level) + datatype.format(n);
                 cell.setCellValue(str);
             } else {
