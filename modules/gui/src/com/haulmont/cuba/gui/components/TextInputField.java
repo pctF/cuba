@@ -167,6 +167,11 @@ public interface TextInputField<V> extends Field<V>, Buffered, Component.Focusab
      * Different modes how the TextField can trigger {@link TextChangeEvent}s.
      */
     enum TextChangeEventMode {
+
+        /**
+         * Fires a server-side event when the field loses focus.
+         */
+        BLUR,
         /**
          * An event is triggered on each text content change, most commonly key
          * press events.
