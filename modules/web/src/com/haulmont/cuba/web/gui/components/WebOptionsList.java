@@ -17,22 +17,25 @@
 
 package com.haulmont.cuba.web.gui.components;
 
+import com.google.common.base.Strings;
+import com.google.common.collect.BiMap;
+import com.google.common.collect.ImmutableBiMap;
+import com.haulmont.cuba.core.entity.Entity;
 import com.haulmont.cuba.core.global.MetadataTools;
 import com.haulmont.cuba.gui.components.CaptionMode;
 import com.haulmont.cuba.gui.components.OptionsList;
+import com.haulmont.cuba.gui.components.data.meta.EntityOptions;
 import com.haulmont.cuba.gui.components.data.meta.EntityValueSource;
 import com.haulmont.cuba.gui.components.data.meta.OptionsBinding;
 import com.haulmont.cuba.gui.components.data.Options;
+import com.haulmont.cuba.gui.components.data.options.MapOptions;
 import com.haulmont.cuba.gui.components.data.options.OptionsBinder;
 import com.haulmont.cuba.web.widgets.CubaListSelect;
 import com.vaadin.v7.data.util.IndexedContainer;
 import org.springframework.context.ApplicationContext;
 
 import javax.inject.Inject;
-import java.util.Collection;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -45,6 +48,8 @@ public class WebOptionsList<V, I> extends WebAbstractField<CubaListSelect, V> im
     protected OptionsBinding<I> optionsBinding;
 
     protected Function<? super I, String> optionCaptionProvider;
+
+    protected String captionProperty;
 
     @SuppressWarnings("unchecked")
     public WebOptionsList() {
@@ -164,6 +169,12 @@ public class WebOptionsList<V, I> extends WebAbstractField<CubaListSelect, V> im
             this.optionsBinding = optionsBinder.bind(options, this, this::setItemsToPresentation);
             this.optionsBinding.activate();
         }
+
+        if (options instanceof MapOptions) {
+            setCaptionMode(CaptionMode.MAP_ENTRY);
+        } else {
+            setCaptionMode(CaptionMode.ITEM);
+        }
     }
 
     @Override
@@ -189,6 +200,8 @@ public class WebOptionsList<V, I> extends WebAbstractField<CubaListSelect, V> im
     @Override
     public void setOptionCaptionProvider(Function<? super I, String> optionCaptionProvider) {
         this.optionCaptionProvider = optionCaptionProvider;
+
+        component.setItemCaptionGenerator(o -> generateItemCaption((I) o));
     }
 
     @Override
@@ -198,24 +211,55 @@ public class WebOptionsList<V, I> extends WebAbstractField<CubaListSelect, V> im
 
     @Override
     public CaptionMode getCaptionMode() {
-        // vaadin8
-        return null;
+        return WebWrapperUtils.toCaptionMode(component.getItemCaptionMode());
     }
 
     @Override
     public void setCaptionMode(CaptionMode captionMode) {
-        // vaadin8
+        if (this.getCaptionMode() != captionMode) {
+            switch (captionMode) {
+                case PROPERTY:
+                    if (Strings.isNullOrEmpty(getCaptionProperty())) {
+                        throw new IllegalStateException("Can't set CaptionMode = " + captionMode +
+                                " if the captionProperty is null");
+                    }
+
+                    if (!EntityOptions.class.isAssignableFrom(optionsBinding.getSource().getClass())) {
+                        throw new IllegalStateException("Can't set CaptionMode = " + captionMode +
+                                " for non EntityOptions class");
+                    }
+
+                    setOptionCaptionProvider(this::generateOptionPropertyCaption);
+                    break;
+                case MAP_ENTRY:
+                    if (!MapOptions.class.isAssignableFrom(optionsBinding.getSource().getClass())) {
+                        throw new IllegalStateException("Can't set CaptionMode = " + captionMode +
+                                " for non MapOptions class");
+                    }
+
+                    Map<String, I> optionsMap = ((MapOptions<I>) getOptions()).getItemsCollection();
+                    BiMap<String, I> biMap = ImmutableBiMap.copyOf(optionsMap);
+                    setOptionCaptionProvider(v -> biMap.inverse().get(v));
+                    break;
+                case ITEM:
+                default:
+                    // set null to use default behaviour
+                    setOptionCaptionProvider(null);
+            }
+            component.setItemCaptionMode(WebWrapperUtils.toVaadinCaptionMode(captionMode));
+        }
     }
 
     @Override
     public String getCaptionProperty() {
-        // vaadin8
-        return null;
+        return captionProperty;
     }
 
     @Override
     public void setCaptionProperty(String captionProperty) {
-        // vaadin8
+        this.captionProperty = captionProperty;
+
+        setCaptionMode(CaptionMode.PROPERTY);
     }
 
     @Override
@@ -231,5 +275,9 @@ public class WebOptionsList<V, I> extends WebAbstractField<CubaListSelect, V> im
     @Override
     public void setTabIndex(int tabIndex) {
         component.setTabIndex(tabIndex);
+    }
+
+    protected String generateOptionPropertyCaption(I item) {
+        return ((Entity) item).getValueEx(captionProperty);
     }
 }
