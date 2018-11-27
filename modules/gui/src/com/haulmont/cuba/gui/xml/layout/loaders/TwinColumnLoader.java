@@ -94,7 +94,7 @@ public class TwinColumnLoader extends AbstractFieldLoader<TwinColumn> {
         super.loadDatasource(component, element);
     }
 
-    protected void loadOptionsContainer(TwinColumn component, Element element){
+    protected void loadOptionsContainer(TwinColumn component, Element element) {
         String containerId = element.attributeValue("optionsContainer");
         if (containerId != null) {
             FrameOwner frameOwner = context.getFrame().getFrameOwner();
