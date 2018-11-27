@@ -24,6 +24,7 @@ import com.haulmont.cuba.core.entity.Entity;
 import com.haulmont.cuba.core.global.MetadataTools;
 import com.haulmont.cuba.gui.components.CaptionMode;
 import com.haulmont.cuba.gui.components.OptionsList;
+import com.haulmont.cuba.gui.components.data.ValueSource;
 import com.haulmont.cuba.gui.components.data.meta.EntityOptions;
 import com.haulmont.cuba.gui.components.data.meta.EntityValueSource;
 import com.haulmont.cuba.gui.components.data.meta.OptionsBinding;
@@ -116,7 +117,10 @@ public class WebOptionsList<V, I> extends WebAbstractField<CubaListSelect, V> im
                     .filter(collectionValue::contains);
 
             if (valueBinding != null) {
-                Class<V> targetType = valueBinding.getSource().getType();
+                ValueSource<V> valueSource = valueBinding.getSource();
+
+                Class<?> targetType = ((EntityValueSource) valueSource)
+                        .getMetaPropertyPath().getMetaProperty().getJavaType();
 
                 if (List.class.isAssignableFrom(targetType)) {
                     return (V) selectedItemsStream.collect(Collectors.toList());
@@ -131,6 +135,11 @@ public class WebOptionsList<V, I> extends WebAbstractField<CubaListSelect, V> im
         }
 
         return super.convertToModel(componentRawValue);
+    }
+
+    @Override
+    public V getValue() {
+        return convertToModel(component.getValue());
     }
 
     @SuppressWarnings("unchecked")
@@ -258,8 +267,6 @@ public class WebOptionsList<V, I> extends WebAbstractField<CubaListSelect, V> im
     @Override
     public void setCaptionProperty(String captionProperty) {
         this.captionProperty = captionProperty;
-
-        setCaptionMode(CaptionMode.PROPERTY);
     }
 
     @Override
