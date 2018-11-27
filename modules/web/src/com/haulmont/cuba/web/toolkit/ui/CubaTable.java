@@ -288,6 +288,10 @@ public class CubaTable extends com.vaadin.ui.Table implements TableContainer, Cu
             AppUI ui = AppUI.getCurrent();
             ui.setProfilerMarker(profilerMarker);
         }
+
+        if (variables.containsKey("updateAggregationRow")) {
+            markAsDirty();
+        }
     }
 
     @Override
